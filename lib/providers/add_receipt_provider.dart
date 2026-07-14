@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../models/receipt_item.dart';
+import '../models/scan_receipt_result.dart';
 import '../services/receipt_service.dart';
 import '../utils/formatters.dart';
 
@@ -28,13 +31,52 @@ class AddReceiptProvider extends ChangeNotifier {
   final TextEditingController merchantController = TextEditingController();
   DateTime selectedDate = DateTime.now();
 
-  final List<ReceiptItemInput> items = [ReceiptItemInput()];
+  final List<ReceiptItemInput> items = [];
+
+  /// Foto struk hasil scan (null kalau user input manual tanpa foto).
+  final File? receiptImageFile;
+
+  /// True kalau form ini dibuka dari alur Scan (bukan Tambah Manual),
+  /// dipakai buat nampilin banner "hasil AI, mohon dicek" di UI.
+  final bool isFromScan;
 
   bool isSaving = false;
   String? errorMessage;
 
   List<String> merchantSuggestions = [];
   bool isLoadingMerchants = false;
+
+  AddReceiptProvider({ScanReceiptResult? scanResult, File? imageFile})
+    : receiptImageFile = imageFile,
+      isFromScan = scanResult != null {
+    if (scanResult != null) {
+      _prefillFromScan(scanResult);
+    } else {
+      items.add(ReceiptItemInput());
+    }
+  }
+
+  void _prefillFromScan(ScanReceiptResult result) {
+    merchantController.text = result.merchantName;
+
+    if (result.receiptDate != null) {
+      selectedDate = result.receiptDate!;
+    }
+
+    if (result.items.isEmpty) {
+      items.add(ReceiptItemInput());
+      return;
+    }
+
+    for (final scanned in result.items) {
+      final input = ReceiptItemInput(qty: scanned.qty > 0 ? scanned.qty : 1);
+      input.nameController.text = scanned.itemName;
+      if (scanned.unitPrice > 0) {
+        input.priceController.text = formatPriceInput(scanned.unitPrice);
+      }
+      items.add(input);
+    }
+  }
 
   /// Ambil daftar nama merchant yang sudah pernah dipakai, buat suggestion
   /// di autocomplete. Kalau gagal (mis. offline), diamkan saja karena ini
@@ -118,6 +160,13 @@ class AddReceiptProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Upload foto dulu (kalau ada) sebelum insert ke receipts,
+      // supaya kolom image_url langsung terisi path-nya.
+      String? imagePath;
+      if (receiptImageFile != null) {
+        imagePath = await _receiptService.uploadReceiptImage(receiptImageFile!);
+      }
+
       final receiptItems = items
           .map(
             (item) => ReceiptItem(
@@ -132,6 +181,7 @@ class AddReceiptProvider extends ChangeNotifier {
         merchantName: merchantController.text.trim(),
         receiptDate: selectedDate,
         items: receiptItems,
+        imagePath: imagePath,
       );
 
       isSaving = false;

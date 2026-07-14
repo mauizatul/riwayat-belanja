@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../models/scan_receipt_result.dart';
 import '../../../providers/add_receipt_provider.dart';
 import '../../../utils/formatters.dart';
 import '../widgets/add_receipt_footer.dart';
@@ -8,12 +11,21 @@ import '../widgets/merchant_autocomplete_field.dart';
 import '../widgets/receipt_item_form_card.dart';
 
 class AddReceiptScreen extends StatelessWidget {
-  const AddReceiptScreen({super.key});
+  /// Hasil ekstraksi AI, diisi kalau screen ini dibuka dari alur Scan.
+  /// Null kalau dari Tambah Manual.
+  final ScanReceiptResult? scanResult;
+
+  /// Foto struk hasil scan, dipakai buat preview & di-upload saat simpan.
+  final File? imageFile;
+
+  const AddReceiptScreen({super.key, this.scanResult, this.imageFile});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AddReceiptProvider()..loadMerchantSuggestions(),
+      create: (_) =>
+          AddReceiptProvider(scanResult: scanResult, imageFile: imageFile)
+            ..loadMerchantSuggestions(),
       child: const _AddReceiptView(),
     );
   }
@@ -58,7 +70,11 @@ class _AddReceiptView extends StatelessWidget {
     final provider = context.watch<AddReceiptProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Receipt')),
+      appBar: AppBar(
+        title: Text(
+          provider.isFromScan ? 'Koreksi Hasil Scan' : 'Tambah Receipt',
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -67,6 +83,11 @@ class _AddReceiptView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (provider.isFromScan) ...[
+                    _ScanResultBanner(imageFile: provider.receiptImageFile),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Nama merchant (autocomplete + bisa ketik manual)
                   MerchantAutocompleteField(provider: provider),
                   const SizedBox(height: 16),
@@ -126,6 +147,74 @@ class _AddReceiptView extends StatelessWidget {
             total: provider.totalAmount,
             isSaving: provider.isSaving,
             onSave: () => _handleSave(context),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Banner peringatan + thumbnail foto struk, muncul kalau form ini
+/// dibuka dari alur Scan (hasil AI, bukan input manual).
+class _ScanResultBanner extends StatelessWidget {
+  final File? imageFile;
+
+  const _ScanResultBanner({required this.imageFile});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (imageFile != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                imageFile!,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Hasil scan AI',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Mohon periksa & koreksi dulu sebelum disimpan, '
+                  'terutama qty dan harga.',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -64,6 +64,13 @@ String formatDate(DateTime date) {
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
 
+/// Format angka mentah jadi teks yang cocok dipakai untuk mengisi ulang
+/// text field harga yang pakai [CurrencyInputFormatter] (tanpa prefix "Rp").
+/// Dipakai saat pre-fill form dari hasil scan AI.
+String formatPriceInput(num value) {
+  return NumberFormat.decimalPattern('id_ID').format(value.round());
+}
+
 /// Format tanggal singkat "9/7/2026", cocok untuk list/history.
 String formatShortDate(DateTime date) {
   return '${date.day}/${date.month}/${date.year}';

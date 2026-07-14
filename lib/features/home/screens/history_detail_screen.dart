@@ -17,11 +17,13 @@ class HistoryDetailScreen extends StatefulWidget {
 class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   final ReceiptService _service = ReceiptService();
   late Future<List<ReceiptItem>> _itemsFuture;
+  late Future<String?> _imageUrlFuture;
 
   @override
   void initState() {
     super.initState();
     _itemsFuture = _loadItems();
+    _imageUrlFuture = _loadImageUrl();
   }
 
   Future<List<ReceiptItem>> _loadItems() {
@@ -32,11 +34,44 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     return _service.getReceiptItems(receiptId);
   }
 
+  /// Path foto struk (kalau ada) disimpan di receipt.imageUrl, tapi
+  /// bucket-nya private -- jadi kita perlu generate signed URL dulu
+  /// sebelum bisa ditampilkan.
+  Future<String?> _loadImageUrl() {
+    final path = widget.receipt.imageUrl;
+    if (path == null || path.isEmpty) {
+      return Future.value(null);
+    }
+    return _service.getReceiptImageUrl(path);
+  }
+
   Future<void> _refresh() async {
     setState(() {
       _itemsFuture = _loadItems();
+      _imageUrlFuture = _loadImageUrl();
     });
-    await _itemsFuture;
+    await Future.wait([_itemsFuture, _imageUrlFuture]);
+  }
+
+  void _openFullImage(String url) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4,
+              child: Image.network(url),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -68,6 +103,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                _buildReceiptImage(context),
                 _buildMerchantCard(context, receipt),
                 const SizedBox(height: 24),
                 Text(
@@ -90,6 +126,85 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  /// Kalau receipt ini tidak punya foto (input manual tanpa lampiran),
+  /// tidak menampilkan apa pun -- tidak ada gap kosong yang aneh.
+  Widget _buildReceiptImage(BuildContext context) {
+    final path = widget.receipt.imageUrl;
+    if (path == null || path.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: FutureBuilder<String?>(
+        future: _imageUrlFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              height: 180,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          final url = snapshot.data;
+          if (snapshot.hasError || url == null) {
+            return Container(
+              height: 80,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Foto struk tidak tersedia',
+                style: theme.textTheme.bodySmall,
+              ),
+            );
+          }
+
+          return GestureDetector(
+            onTap: () => _openFullImage(url),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                url,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: progress.expectedTotalBytes != null
+                            ? progress.cumulativeBytesLoaded /
+                                  progress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 200,
+                  alignment: Alignment.center,
+                  color: theme.colorScheme.surfaceContainerLow,
+                  child: const Text('Gagal memuat foto'),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/receipt_model.dart';
 import '../models/receipt_item.dart';
+import '../models/scan_receipt_result.dart';
 
 class ReceiptService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -37,6 +41,7 @@ class ReceiptService {
     required String merchantName,
     required DateTime? receiptDate,
     required List<ReceiptItem> items,
+    String? imagePath,
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
@@ -59,6 +64,7 @@ class ReceiptService {
       merchantId: merchantId,
       receiptDate: receiptDate,
       totalAmount: totalAmount,
+      imageUrl: imagePath,
     );
 
     int? insertedReceiptId;
@@ -131,5 +137,71 @@ class ReceiptService {
     return (data as List)
         .map((json) => ReceiptItem.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Upload foto struk ke bucket `receipt-images`.
+  /// Path yang dipakai: `{user_id}/{timestamp}.{ext}`, sesuai RLS policy
+  /// yang sudah kita setup (folder pertama harus = auth.uid()).
+  /// Mengembalikan PATH-nya (bukan URL), karena bucket-nya private.
+  Future<String> uploadReceiptImage(File imageFile) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('User belum login.');
+    }
+
+    final fileExt = imageFile.path.split('.').last.toLowerCase();
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+    final path = '$userId/$fileName';
+
+    await _client.storage.from('receipt-images').upload(path, imageFile);
+
+    return path;
+  }
+
+  /// Generate signed URL (berlaku 1 jam) dari path yang tersimpan di
+  /// `image_url`, dipakai untuk benar-benar menampilkan foto struk
+  /// (karena bucket-nya private, tidak bisa diakses lewat URL biasa).
+  Future<String> getReceiptImageUrl(String path) {
+    return _client.storage.from('receipt-images').createSignedUrl(path, 3600);
+  }
+
+  /// Kirim foto struk ke Edge Function `scan-receipt`, dapat balik hasil
+  /// ekstraksi AI: nama merchant, tanggal, dan daftar barang.
+  Future<ScanReceiptResult> scanReceipt(File imageFile) async {
+    final bytes = await imageFile.readAsBytes();
+    final base64Image = base64Encode(bytes);
+    final mimeType = _guessMimeType(imageFile.path);
+
+    final response = await _client.functions.invoke(
+      'scan-receipt',
+      body: {'image_base64': base64Image, 'mime_type': mimeType},
+    );
+
+    if (response.status != 200) {
+      final data = response.data;
+      final errorMessage = (data is Map && data['error'] != null)
+          ? data['error']
+          : null;
+      throw Exception(
+        errorMessage ?? 'Gagal memindai struk (status ${response.status}).',
+      );
+    }
+
+    final data = response.data as Map<String, dynamic>;
+    return ScanReceiptResult.fromJson(data['data'] as Map<String, dynamic>);
+  }
+
+  String _guessMimeType(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
   }
 }

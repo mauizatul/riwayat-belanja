@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:my_app_1/core/theme/app_text_styles.dart';
 import 'package:my_app_1/features/home/screens/history_list_screen.dart';
+import 'package:my_app_1/features/home/screens/scan_receipt_screen.dart';
 import 'package:my_app_1/features/receipt/screens/add_receipt_screen.dart';
 import 'package:my_app_1/providers/receipt_provider.dart';
 
@@ -30,6 +31,16 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReceiptProvider>().loadReceipts();
     });
+  }
+
+  Future<void> _openScanReceipt() async {
+    final result = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => const ScanReceiptScreen()));
+
+    if (result == true && mounted) {
+      context.read<ReceiptProvider>().loadReceipts();
+    }
   }
 
   Future<void> _openAddReceipt() async {
@@ -76,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.document_scanner,
                       title: "Scan",
                       color: AppColors.primary,
-                      onTap: () {},
+                      onTap: _openScanReceipt,
                     ),
                   ),
                   const SizedBox(width: 16),
