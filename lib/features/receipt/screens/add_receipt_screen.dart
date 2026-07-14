@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/scan_receipt_result.dart';
-import '../../../providers/add_receipt_provider.dart';
-import '../../../utils/formatters.dart';
-import '../widgets/add_receipt_footer.dart';
-import '../widgets/merchant_autocomplete_field.dart';
-import '../widgets/receipt_item_form_card.dart';
+import 'package:riwayat_belanjaku/models/scan_receipt_result.dart';
+import 'package:riwayat_belanjaku/providers/add_receipt_provider.dart';
+import 'package:riwayat_belanjaku/utils/formatters.dart';
+import 'package:riwayat_belanjaku/features/receipt/widgets/add_receipt_footer.dart';
+import 'package:riwayat_belanjaku/features/receipt/widgets/merchant_autocomplete_field.dart';
+import 'package:riwayat_belanjaku/features/receipt/widgets/receipt_item_form_card.dart';
 
 class AddReceiptScreen extends StatelessWidget {
   /// Hasil ekstraksi AI, diisi kalau screen ini dibuka dari alur Scan.

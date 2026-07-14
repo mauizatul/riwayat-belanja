@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:my_app_1/models/receipt_model.dart';
-import 'package:my_app_1/services/receipt_service.dart';
+import 'package:riwayat_belanjaku/models/receipt_model.dart';
+import 'package:riwayat_belanjaku/services/receipt_service.dart';
 
 class ReceiptProvider extends ChangeNotifier {
   final ReceiptService _service = ReceiptService();

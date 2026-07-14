@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:my_app_1/main.dart';
+import 'package:riwayat_belanjaku/main.dart';
 
 void main() {
   testWidgets('tapping See More opens the full history screen', (tester) async {

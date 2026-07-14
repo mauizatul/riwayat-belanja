@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../services/receipt_service.dart';
-import '../../receipt/screens/add_receipt_screen.dart';
+import 'package:riwayat_belanjaku/services/receipt_service.dart';
+import 'package:riwayat_belanjaku/features/receipt/screens/add_receipt_screen.dart';
 
 /// Layar perantara untuk alur Scan:
 /// 1. Otomatis buka kamera begitu screen ini dibuka.

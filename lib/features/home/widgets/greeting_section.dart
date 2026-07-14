@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:my_app_1/core/theme/app_colors.dart';
-import 'package:my_app_1/core/theme/app_text_styles.dart';
-
-import '../../../services/profile_service.dart';
+import 'package:riwayat_belanjaku/core/theme/app_colors.dart';
+import 'package:riwayat_belanjaku/core/theme/app_text_styles.dart';
+import 'package:riwayat_belanjaku/services/profile_service.dart';
 
 class GreetingSection extends StatelessWidget {
   const GreetingSection({super.key});

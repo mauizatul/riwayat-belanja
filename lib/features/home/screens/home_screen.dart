@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:my_app_1/core/theme/app_text_styles.dart';
-import 'package:my_app_1/features/home/screens/history_list_screen.dart';
-import 'package:my_app_1/features/home/screens/scan_receipt_screen.dart';
-import 'package:my_app_1/features/receipt/screens/add_receipt_screen.dart';
-import 'package:my_app_1/providers/receipt_provider.dart';
+import 'package:riwayat_belanjaku/core/theme/app_text_styles.dart';
+import 'package:riwayat_belanjaku/features/home/screens/history_list_screen.dart';
+import 'package:riwayat_belanjaku/features/home/screens/scan_receipt_screen.dart';
+import 'package:riwayat_belanjaku/features/receipt/screens/add_receipt_screen.dart';
+import 'package:riwayat_belanjaku/providers/receipt_provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/system_ui.dart';

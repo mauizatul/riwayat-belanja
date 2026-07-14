@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../providers/receipt_provider.dart';
-import '../widgets/history_item.dart';
-import 'history_detail_screen.dart';
+import 'package:riwayat_belanjaku/providers/receipt_provider.dart';
+import 'package:riwayat_belanjaku/features/home/widgets/history_item.dart';
+import 'package:riwayat_belanjaku/features/home/screens/history_detail_screen.dart';
 
 class HistoryListScreen extends StatefulWidget {
   const HistoryListScreen({super.key});

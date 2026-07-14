@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../utils/formatters.dart';
+import 'package:riwayat_belanjaku/utils/formatters.dart';
 
 class AddReceiptFooter extends StatelessWidget {
   final double total;

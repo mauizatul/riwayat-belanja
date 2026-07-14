@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:my_app_1/providers/receipt_provider.dart';
-import 'package:my_app_1/features/home/screens/history_detail_screen.dart';
-import 'package:my_app_1/features/home/screens/history_list_screen.dart';
+import 'package:riwayat_belanjaku/providers/receipt_provider.dart';
+import 'package:riwayat_belanjaku/features/home/screens/history_detail_screen.dart';
+import 'package:riwayat_belanjaku/features/home/screens/history_list_screen.dart';
 import 'history_item.dart';
 
 class HistorySection extends StatelessWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app_1/providers/receipt_provider.dart';
+import 'package:riwayat_belanjaku/providers/receipt_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 

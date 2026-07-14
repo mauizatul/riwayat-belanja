@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../providers/add_receipt_provider.dart';
-import '../../../utils/formatters.dart';
+import 'package:riwayat_belanjaku/providers/add_receipt_provider.dart';
+import 'package:riwayat_belanjaku/utils/formatters.dart';
 
 class ReceiptItemFormCard extends StatelessWidget {
   final int index;

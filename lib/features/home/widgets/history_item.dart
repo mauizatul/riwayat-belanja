@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../models/receipt_model.dart';
-import '../../../utils/formatters.dart';
+import 'package:riwayat_belanjaku/models/receipt_model.dart';
+import 'package:riwayat_belanjaku/utils/formatters.dart';
 
 class HistoryItem extends StatelessWidget {
   final ReceiptModel receipt;

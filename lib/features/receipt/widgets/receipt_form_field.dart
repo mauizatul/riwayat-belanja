@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text_styles.dart';
+import 'package:riwayat_belanjaku/core/theme/app_colors.dart';
+import 'package:riwayat_belanjaku/core/theme/app_spacing.dart';
+import 'package:riwayat_belanjaku/core/theme/app_text_styles.dart';
 
 class ReceiptFormField extends StatelessWidget {
   final String label;

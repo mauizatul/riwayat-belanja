@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../providers/add_receipt_provider.dart';
+import 'package:riwayat_belanjaku/providers/add_receipt_provider.dart';
 
 /// Input nama merchant dengan dropdown suggestion dari merchant yang
 /// sudah pernah dipakai. User tetap bebas ketik nama baru kalau

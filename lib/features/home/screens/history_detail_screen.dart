@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../models/receipt_item.dart';
-import '../../../models/receipt_model.dart';
-import '../../../services/receipt_service.dart';
-import '../../../utils/formatters.dart';
+import 'package:riwayat_belanjaku/models/receipt_item.dart';
+import 'package:riwayat_belanjaku/models/receipt_model.dart';
+import 'package:riwayat_belanjaku/services/receipt_service.dart';
+import 'package:riwayat_belanjaku/utils/formatters.dart';
 
 class HistoryDetailScreen extends StatefulWidget {
   final ReceiptModel receipt;
