@@ -46,3 +46,10 @@ app.*.map.json
 
 # Supabase config (berisi url & anon key, jangan di-commit)
 lib/core/constants/supabase.dart
+supabase/.temp/
+
+# Desktop plugin registrant, auto-generated tiap `flutter pub get`
+**/flutter/generated_plugin_registrant.cc
+**/flutter/generated_plugin_registrant.h
+**/flutter/generated_plugins.cmake
+**/GeneratedPluginRegistrant.swift
