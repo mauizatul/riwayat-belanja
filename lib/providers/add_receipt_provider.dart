@@ -33,8 +33,10 @@ class AddReceiptProvider extends ChangeNotifier {
 
   final List<ReceiptItemInput> items = [];
 
-  /// Foto struk hasil scan (null kalau user input manual tanpa foto).
-  final File? receiptImageFile;
+  /// Foto struk. Diisi dari hasil scan (kalau alur Scan), atau bisa juga
+  /// dipilih manual belakangan lewat [setImageFile] (kalau alur Tambah
+  /// Manual dan user mau tetap lampirkan foto).
+  File? receiptImageFile;
 
   /// True kalau form ini dibuka dari alur Scan (bukan Tambah Manual),
   /// dipakai buat nampilin banner "hasil AI, mohon dicek" di UI.
@@ -100,6 +102,13 @@ class AddReceiptProvider extends ChangeNotifier {
 
   void setDate(DateTime date) {
     selectedDate = date;
+    notifyListeners();
+  }
+
+  /// Set/ganti/hapus foto struk secara manual (dipakai di alur Tambah
+  /// Manual). Kirim null untuk menghapus foto yang sudah dipilih.
+  void setImageFile(File? file) {
+    receiptImageFile = file;
     notifyListeners();
   }
 
