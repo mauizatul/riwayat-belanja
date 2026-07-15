@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:riwayat_belanjaku/core/theme/app_text_styles.dart';
 import 'package:riwayat_belanjaku/features/home/screens/history_list_screen.dart';
+import 'package:riwayat_belanjaku/features/home/screens/item_search_screen.dart';
 import 'package:riwayat_belanjaku/features/home/screens/scan_receipt_screen.dart';
 import 'package:riwayat_belanjaku/features/receipt/screens/add_receipt_screen.dart';
+import 'package:riwayat_belanjaku/providers/price_insight_provider.dart';
 import 'package:riwayat_belanjaku/providers/receipt_provider.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -12,6 +14,7 @@ import '../../../core/utils/system_ui.dart';
 import '../widgets/greeting_section.dart';
 import '../widgets/history_section.dart';
 import '../widgets/menu_card.dart';
+import '../widgets/price_increase_section.dart';
 import '../widgets/total_expense_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,7 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // dipanggil langsung di initState sebelum frame pertama selesai build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ReceiptProvider>().loadReceipts();
+      context.read<PriceInsightProvider>().loadPriceIncreases();
     });
+  }
+
+  Future<void> _reloadAll() async {
+    if (!mounted) return;
+    context.read<ReceiptProvider>().loadReceipts();
+    context.read<PriceInsightProvider>().loadPriceIncreases();
   }
 
   Future<void> _openScanReceipt() async {
@@ -38,8 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
     ).push<bool>(MaterialPageRoute(builder: (_) => const ScanReceiptScreen()));
 
-    if (result == true && mounted) {
-      context.read<ReceiptProvider>().loadReceipts();
+    if (result == true) {
+      await _reloadAll();
     }
   }
 
@@ -49,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ).push<bool>(MaterialPageRoute(builder: (_) => const AddReceiptScreen()));
 
     // AddReceiptScreen pop(true) kalau simpan sukses.
-    if (result == true && mounted) {
-      context.read<ReceiptProvider>().loadReceipts();
+    if (result == true) {
+      await _reloadAll();
     }
   }
 
@@ -73,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 32),
 
               const HistorySection(),
+
+              const SizedBox(height: 32),
+
+              // Section ini otomatis sembunyi kalau tidak ada insight.
+              const PriceIncreaseSection(),
 
               const SizedBox(height: 32),
 
@@ -115,6 +130,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                    child: Icon(Icons.search, color: AppColors.primary),
+                  ),
+                  title: const Text('Cari Harga Barang'),
+                  subtitle: const Text(
+                    'Lihat riwayat harga barang yang pernah dibeli',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ItemSearchScreen(),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),

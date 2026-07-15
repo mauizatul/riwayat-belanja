@@ -1,5 +1,6 @@
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:riwayat_belanjaku/providers/price_insight_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/supabase.dart';
 import 'core/theme/app_theme.dart';
@@ -16,9 +17,11 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ReceiptProvider()..loadReceipts(),
-
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ReceiptProvider()),
+        ChangeNotifierProvider(create: (_) => PriceInsightProvider()), // baru
+      ],
       child: const ReceiptApp(),
     ),
   );

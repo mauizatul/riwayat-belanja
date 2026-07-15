@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/receipt_model.dart';
 import '../models/receipt_item.dart';
 import '../models/scan_receipt_result.dart';
+import '../models/item_purchase.dart';
+import '../models/price_change.dart';
 
 class ReceiptService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -203,5 +205,105 @@ class ReceiptService {
       default:
         return 'image/jpeg';
     }
+  }
+
+  /// Cari histori pembelian barang berdasarkan nama (partial match,
+  /// case-insensitive), lengkap dengan tanggal & merchant-nya.
+  /// Diurutkan dari yang terbaru dibeli.
+  Future<List<ItemPurchase>> searchItemHistory(String query) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('User belum login.');
+    }
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final data = await _client
+        .from('receipt_items')
+        .select(
+          'item_name, qty, unit_price, receipts!inner(receipt_date, user_id, merchants(name))',
+        )
+        .eq('receipts.user_id', userId)
+        .ilike('item_name', '%$trimmed%');
+
+    final items = (data as List)
+        .map((json) => ItemPurchase.fromJson(json as Map<String, dynamic>))
+        .toList();
+
+    // Urutkan terbaru dulu. Yang tanpa tanggal ditaruh paling akhir.
+    items.sort((a, b) {
+      if (a.receiptDate == null && b.receiptDate == null) return 0;
+      if (a.receiptDate == null) return 1;
+      if (b.receiptDate == null) return -1;
+      return b.receiptDate!.compareTo(a.receiptDate!);
+    });
+
+    return items;
+  }
+
+  /// Deteksi barang yang harganya naik, dibandingkan 2 pembelian
+  /// TERAKHIR di merchant yang SAMA (bukan sekadar nama barang sama),
+  /// supaya tidak salah kaprah membandingkan harga antar toko berbeda.
+  /// Diurutkan dari kenaikan persentase terbesar.
+  Future<List<PriceChange>> getPriceIncreases() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('User belum login.');
+    }
+
+    final data = await _client
+        .from('receipt_items')
+        .select(
+          'item_name, qty, unit_price, receipts!inner(receipt_date, user_id, merchants(name))',
+        )
+        .eq('receipts.user_id', userId);
+
+    final items = (data as List)
+        .map((json) => ItemPurchase.fromJson(json as Map<String, dynamic>))
+        .where(
+          (item) =>
+              item.receiptDate != null &&
+              item.merchantName != null &&
+              item.merchantName!.isNotEmpty &&
+              item.unitPrice > 0,
+        )
+        .toList();
+
+    // Kelompokkan per (nama barang + merchant), case-insensitive.
+    final Map<String, List<ItemPurchase>> grouped = {};
+    for (final item in items) {
+      final key =
+          '${item.itemName.trim().toLowerCase()}|${item.merchantName!.trim().toLowerCase()}';
+      grouped.putIfAbsent(key, () => []).add(item);
+    }
+
+    final List<PriceChange> changes = [];
+
+    for (final group in grouped.values) {
+      if (group.length < 2) continue;
+
+      group.sort((a, b) => a.receiptDate!.compareTo(b.receiptDate!));
+
+      final latest = group.last;
+      final previous = group[group.length - 2];
+
+      if (latest.unitPrice > previous.unitPrice) {
+        changes.add(
+          PriceChange(
+            itemName: latest.itemName,
+            merchantName: latest.merchantName!,
+            oldPrice: previous.unitPrice,
+            newPrice: latest.unitPrice,
+            oldDate: previous.receiptDate!,
+            newDate: latest.receiptDate!,
+          ),
+        );
+      }
+    }
+
+    changes.sort((a, b) => b.percentChange.compareTo(a.percentChange));
+
+    return changes;
   }
 }
