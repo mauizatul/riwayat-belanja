@@ -64,6 +64,25 @@ String formatDate(DateTime date) {
   return '${date.day} ${months[date.month - 1]} ${date.year}';
 }
 
+/// Format "Juli 2026", dipakai sebagai label grup bulan di halaman riwayat.
+String formatMonthYear(DateTime date) {
+  const months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+  return '${months[date.month - 1]} ${date.year}';
+}
+
 /// Format angka mentah jadi teks yang cocok dipakai untuk mengisi ulang
 /// text field harga yang pakai [CurrencyInputFormatter] (tanpa prefix "Rp").
 /// Dipakai saat pre-fill form dari hasil scan AI.
