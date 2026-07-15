@@ -1,0 +1,6 @@
+class SupabaseConfig {
+  static const url = '';
+
+  static const publishableKey =
+      '';
+}
